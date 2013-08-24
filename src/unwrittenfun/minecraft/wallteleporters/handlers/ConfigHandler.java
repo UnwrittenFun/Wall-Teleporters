@@ -1,6 +1,7 @@
 package unwrittenfun.minecraft.wallteleporters.handlers;
 
 import net.minecraftforge.common.Configuration;
+import unwrittenfun.minecraft.wallteleporters.info.BlockInfo;
 
 import java.io.File;
 
@@ -14,6 +15,9 @@ public class ConfigHandler {
         Configuration config = new Configuration(file);
 
         config.load();
+
+        BlockInfo.WT_ID = config.getBlock(BlockInfo.WT_KEY, BlockInfo.WT_DEFAULT_ID).getInt();
+
         config.save();
     }
 }
