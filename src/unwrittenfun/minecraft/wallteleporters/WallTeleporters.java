@@ -6,6 +6,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
+import unwrittenfun.minecraft.wallteleporters.handlers.ConfigHandler;
 import unwrittenfun.minecraft.wallteleporters.handlers.PacketHandler;
 import unwrittenfun.minecraft.wallteleporters.info.ModInfo;
 
@@ -27,6 +28,7 @@ public class WallTeleporters {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        ConfigHandler.init(event.getSuggestedConfigurationFile());
     }
 
     @Mod.EventHandler
