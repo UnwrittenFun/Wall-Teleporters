@@ -5,6 +5,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import unwrittenfun.minecraft.wallteleporters.client.gui.creativetabs.WTCreativeTabs;
 import unwrittenfun.minecraft.wallteleporters.info.BlockInfo;
 import unwrittenfun.minecraft.wallteleporters.info.ModInfo;
 
@@ -14,12 +15,12 @@ import unwrittenfun.minecraft.wallteleporters.info.ModInfo;
  * License: Minecraft Mod Public License (Version 1.0.1)
  */
 public class BlockWallTeleporter extends BlockContainer {
-
     public BlockWallTeleporter(int id) {
         super(id, Material.iron);
 
         setUnlocalizedName(BlockInfo.WT_UNLOCAL_NAME);
         setHardness(2F);
+        setCreativeTab(WTCreativeTabs.wtTab);
     }
 
     @Override
