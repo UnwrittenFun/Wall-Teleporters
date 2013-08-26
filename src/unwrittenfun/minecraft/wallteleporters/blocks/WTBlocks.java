@@ -2,6 +2,7 @@ package unwrittenfun.minecraft.wallteleporters.blocks;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
+import unwrittenfun.minecraft.wallteleporters.blocks.tileentities.TileEntityWallTeleporter;
 import unwrittenfun.minecraft.wallteleporters.info.BlockInfo;
 
 /**
@@ -24,5 +25,6 @@ public class WTBlocks {
     }
 
     public static void registerTileEntity() {
+        GameRegistry.registerTileEntity(TileEntityWallTeleporter.class, BlockInfo.WT_TE_KEY);
     }
 }
