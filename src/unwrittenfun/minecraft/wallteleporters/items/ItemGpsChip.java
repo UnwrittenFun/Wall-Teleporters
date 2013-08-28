@@ -28,7 +28,6 @@ public class ItemGpsChip extends Item {
 
         setMaxStackSize(1);
         setCreativeTab(WTCreativeTabs.wtTab);
-        setUnlocalizedName(ItemInfo.GPS_CHIP_UNLOCAL_NAME);
     }
 
     @Override
@@ -80,8 +79,7 @@ public class ItemGpsChip extends Item {
     public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean par4) {
         if (hasTeleportData(stack)) {
             NBTTagCompound teleportCompound = stack.getTagCompound().getCompoundTag("LocationData");
-            list.add("World: " +
-                     DimensionManager.getProvider(teleportCompound.getInteger("worldId")).getDimensionName());
+            list.add("World Id: " + teleportCompound.getInteger("worldId"));
             list.add("X: " + teleportCompound.getInteger("locationX"));
             list.add("Y: " + teleportCompound.getInteger("locationY"));
             list.add("Z: " + teleportCompound.getInteger("locationZ"));
@@ -89,12 +87,13 @@ public class ItemGpsChip extends Item {
     }
 
     @Override
-    public String getItemDisplayName(ItemStack stack) {
-        if (hasTeleportData(stack)) {
-            return ItemInfo.GPS_CHIP_LINKED_NAME;
-        }
+    public String getUnlocalizedName() {
+        return "item." + ItemInfo.GPS_CHIP_UNLOCAL_NAME + "1";
+    }
 
-        return super.getItemDisplayName(stack);
+    @Override
+    public String getUnlocalizedName(ItemStack stack) {
+        return "item." + ItemInfo.GPS_CHIP_UNLOCAL_NAME + stack.getItemDamage();
     }
 
     public boolean hasTeleportData(ItemStack stack) {

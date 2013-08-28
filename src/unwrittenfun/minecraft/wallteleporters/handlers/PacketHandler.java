@@ -2,7 +2,6 @@ package unwrittenfun.minecraft.wallteleporters.handlers;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import com.sun.istack.internal.Nullable;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.IPacketHandler;
 import cpw.mods.fml.common.network.PacketDispatcher;
@@ -96,7 +95,7 @@ public class PacketHandler implements IPacketHandler {
         }
     }
 
-    public static void sendNewMaskPacket(byte id, TileEntityWallTeleporter teleporter, @Nullable Player player) {
+    public static void sendNewMaskPacket(byte id, TileEntityWallTeleporter teleporter, Player player) {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         DataOutputStream dataStream = new DataOutputStream(byteStream);
 
@@ -194,7 +193,7 @@ public class PacketHandler implements IPacketHandler {
         }
     }
 
-    public static void sendDestinationPacket(MultiblockWallTeleporter multiblock, @Nullable Player player) {
+    public static void sendDestinationPacket(MultiblockWallTeleporter multiblock, Player player) {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         DataOutputStream dataStream = new DataOutputStream(byteStream);
 
@@ -317,7 +316,7 @@ public class PacketHandler implements IPacketHandler {
         }
     }
 
-    public static void sendLockedPacket(MultiblockWallTeleporter multiblock, @Nullable Player player) {
+    public static void sendLockedPacket(MultiblockWallTeleporter multiblock, Player player) {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         DataOutputStream dataStream = new DataOutputStream(byteStream);
 

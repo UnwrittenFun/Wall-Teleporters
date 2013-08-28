@@ -49,8 +49,7 @@ public class GuiWallTeleporter extends GuiContainer {
             int infoDy = 25;
             int infoSpacing = 10;
 
-            fontRenderer.drawString(DimensionManager.getProvider(multiblock.destinationWorldId).getDimensionName(),
-                    infoX, infoDy, 0x404040);
+            fontRenderer.drawString("World: " + multiblock.destinationWorldId, infoX, infoDy, 0x404040);
             fontRenderer.drawString(
                     "(" + multiblock.destinationX + ", " + multiblock.destinationY + ", " + multiblock.destinationZ +
                     ")", infoX, infoDy + infoSpacing, 0x404040);

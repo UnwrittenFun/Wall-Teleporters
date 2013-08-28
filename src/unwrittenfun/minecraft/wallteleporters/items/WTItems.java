@@ -23,6 +23,7 @@ public class WTItems {
 
     public static void addNames() {
         LanguageRegistry.addName(new ItemStack(gpsChip, 1), ItemInfo.GPS_CHIP_NAME);
+        LanguageRegistry.addName(new ItemStack(gpsChip, 1, 1), ItemInfo.GPS_CHIP_LINKED_NAME);
         LanguageRegistry.addName(new ItemStack(debugger, 1), ItemInfo.DEBUGGER_NAME);
     }
 
