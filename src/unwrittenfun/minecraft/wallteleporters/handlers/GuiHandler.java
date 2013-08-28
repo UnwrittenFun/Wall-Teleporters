@@ -26,7 +26,8 @@ public class GuiHandler implements IGuiHandler {
         switch (ID) {
             case 0:
                 if (tileEntity instanceof TileEntityWallTeleporter) {
-                    return new ContainerWallTeleporter(player.inventory, (TileEntityWallTeleporter) tileEntity);
+                    return new ContainerWallTeleporter(player.inventory,
+                            ((TileEntityWallTeleporter) tileEntity).multiblock);
                 }
                 break;
         }
@@ -40,7 +41,7 @@ public class GuiHandler implements IGuiHandler {
         switch (ID) {
             case 0:
                 if (tileEntity instanceof TileEntityWallTeleporter) {
-                    return new GuiWallTeleporter(player.inventory, (TileEntityWallTeleporter) tileEntity);
+                    return new GuiWallTeleporter(player.inventory, ((TileEntityWallTeleporter) tileEntity).multiblock);
                 }
                 break;
         }

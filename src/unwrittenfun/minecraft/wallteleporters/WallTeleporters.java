@@ -13,6 +13,7 @@ import unwrittenfun.minecraft.wallteleporters.handlers.EventHandler;
 import unwrittenfun.minecraft.wallteleporters.handlers.GuiHandler;
 import unwrittenfun.minecraft.wallteleporters.handlers.PacketHandler;
 import unwrittenfun.minecraft.wallteleporters.info.ModInfo;
+import unwrittenfun.minecraft.wallteleporters.items.WTItems;
 
 /**
  * Mod: Wall Teleporters
@@ -37,11 +38,17 @@ public class WallTeleporters {
         ConfigHandler.init(event.getSuggestedConfigurationFile());
 
         WTBlocks.init();
+        WTItems.init();
     }
 
     @Mod.EventHandler
     public void load(FMLInitializationEvent event) {
         WTBlocks.addNames();
+        WTItems.addNames();
+
+        WTBlocks.registerRecipes();
+        WTItems.registerRecipes();
+
         WTBlocks.registerTileEntity();
 
         new GuiHandler();

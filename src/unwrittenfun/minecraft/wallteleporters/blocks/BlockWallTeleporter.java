@@ -6,8 +6,10 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -81,7 +83,12 @@ public class BlockWallTeleporter extends BlockContainer {
         if (!world.isRemote) {
             if (entity instanceof EntityPlayerMP) {
                 EntityPlayerMP player = (EntityPlayerMP) entity;
-                player.playerNetServerHandler.setPlayerLocation(0, 60, 0, player.rotationYaw, player.rotationPitch);
+                TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
+
+                if (tileEntity instanceof TileEntityWallTeleporter) {
+                    TileEntityWallTeleporter teleporter = (TileEntityWallTeleporter) tileEntity;
+                    teleporter.teleportPlayer(player);
+                }
             }
         }
     }
@@ -101,21 +108,51 @@ public class BlockWallTeleporter extends BlockContainer {
     @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player,
                                     int side, float hitX, float hitY, float hitZ) {
-        if (!world.isRemote) {
-            TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
+        TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
 
-            if (tileEntity instanceof TileEntityWallTeleporter) {
-                TileEntityWallTeleporter teleporter = ((TileEntityWallTeleporter) tileEntity);
+        if (tileEntity instanceof TileEntityWallTeleporter) {
+            TileEntityWallTeleporter teleporter = ((TileEntityWallTeleporter) tileEntity);
 
-                ItemStack held = player.inventory.getCurrentItem();
-                if (held != null && held.getItem() instanceof ItemBlock) {
+            ItemStack held = player.inventory.getCurrentItem();
+            if (!teleporter.multiblock.isLocked() && held != null && held.getItem() instanceof ItemBlock) {
+                if (!world.isRemote) {
                     teleporter.setMask(((ItemBlock) held.getItem()).getBlockID(), held.getItemDamage());
-                } else {
-                    FMLNetworkHandler.openGui(player, WallTeleporters.instance, 0, world, x, y, z);
                 }
+            } else {
+                FMLNetworkHandler.openGui(player, WallTeleporters.instance, 0, world, x, y, z);
             }
         }
 
         return true;
+    }
+
+    @Override
+    public void breakBlock(World world, int x, int y, int z, int id, int meta) {
+        TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
+        if (tileEntity instanceof TileEntityWallTeleporter) {
+            IInventory inventory = (IInventory) tileEntity;
+
+            for (int i = 0; i < inventory.getSizeInventory(); i++) {
+                ItemStack stack = inventory.getStackInSlotOnClosing(i);
+
+                if (stack != null) {
+                    float spawnX = x + world.rand.nextFloat();
+                    float spawnY = y + world.rand.nextFloat();
+                    float spawnZ = z + world.rand.nextFloat();
+
+                    EntityItem droppedItem = new EntityItem(world, spawnX, spawnY, spawnZ, stack);
+
+                    float mult = 0.05F;
+
+                    droppedItem.motionX = (-0.5F + world.rand.nextFloat()) * mult;
+                    droppedItem.motionY = (4 + world.rand.nextFloat()) * mult;
+                    droppedItem.motionZ = (-0.5F + world.rand.nextFloat()) * mult;
+
+                    world.spawnEntityInWorld(droppedItem);
+                }
+            }
+        }
+
+        super.breakBlock(world, x, y, z, id, meta);
     }
 }

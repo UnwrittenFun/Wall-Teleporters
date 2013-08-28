@@ -7,11 +7,10 @@ package unwrittenfun.minecraft.wallteleporters.info;
  */
 public class BlockInfo {
     public static int WT_ID;
-    public static final int    WT_DEFAULT_ID      = 3000;
-    public static final String WT_NAME            = "Wall Teleporter";
-    public static final String WT_CONTROLLER_NAME = "Wall Teleporter Controller";
-    public static final String WT_UNLOCAL_NAME    = "wallTeleporter";
-    public static final String WT_ICON_NAME       = "wall_teleporter";
-    public static final String WT_KEY             = "WallTeleporter";
-    public static final String WT_TE_KEY          = "WallTeleporterTileEntity";
+    public static final int    WT_DEFAULT_ID   = 3000;
+    public static final String WT_NAME         = "Wall Teleporter";
+    public static final String WT_UNLOCAL_NAME = "wallTeleporter";
+    public static final String WT_ICON_NAME    = "wall_teleporter";
+    public static final String WT_KEY          = "WallTeleporter";
+    public static final String WT_TE_KEY       = "WallTeleporterTileEntity";
 }

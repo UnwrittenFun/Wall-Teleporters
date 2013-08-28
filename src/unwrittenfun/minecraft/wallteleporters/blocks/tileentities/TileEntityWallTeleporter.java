@@ -2,10 +2,10 @@ package unwrittenfun.minecraft.wallteleporters.blocks.tileentities;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
 import unwrittenfun.minecraft.wallteleporters.blocks.multiblocks.MultiblockWallTeleporter;
@@ -18,24 +18,18 @@ import unwrittenfun.minecraft.wallteleporters.info.BlockInfo;
  * License: Minecraft Mod Public License (Version 1.0.1)
  */
 public class TileEntityWallTeleporter extends TileEntity implements IInventory {
-    public MultiblockWallTeleporter multiblock;
-    public  int[]   mask   = new int[]{ 0, 0 };
-    private boolean loaded = false;
+    public  MultiblockWallTeleporter multiblock = new MultiblockWallTeleporter(this);
+    public  int[]                    mask       = new int[]{ 0, 0 };
+    private boolean                  loaded     = false;
 
     public void notifyNeighboursOfConnectionChanged() {
-        boolean alone = true;
         for (ForgeDirection direction : ForgeDirection.VALID_DIRECTIONS) {
             TileEntity tileEntity = worldObj.getBlockTileEntity(xCoord + direction.offsetX, yCoord + direction.offsetY,
                     zCoord + direction.offsetZ);
 
             if (tileEntity instanceof TileEntityWallTeleporter) {
-                alone = false;
                 ((TileEntityWallTeleporter) tileEntity).onConnectionChangedFromDirection(direction);
             }
-        }
-
-        if (alone) {
-            new MultiblockWallTeleporter(this);
         }
     }
 
@@ -51,24 +45,28 @@ public class TileEntityWallTeleporter extends TileEntity implements IInventory {
             if (tileEntity instanceof TileEntityWallTeleporter) {
                 TileEntityWallTeleporter teleporter = (TileEntityWallTeleporter) tileEntity;
 
-                if (teleporter.multiblock == null) {
-                    multiblock.add(teleporter);
-                } else {
-                    MultiblockWallTeleporter.merge(multiblock, teleporter.multiblock);
-                }
+                MultiblockWallTeleporter.merge(multiblock, teleporter.multiblock);
             }
         }
     }
 
     public void setMask(int id, int meta) {
-        if (id == BlockInfo.WT_ID) {
-            id = 0;
-        }
-        mask[0] = id;
-        mask[1] = meta;
+        if ((!worldObj.isRemote && !multiblock.isLocked()) || worldObj.isRemote) {
+            if (id == BlockInfo.WT_ID) {
+                id = 0;
+            }
+            mask[0] = id;
+            mask[1] = meta;
 
-        if (!worldObj.isRemote) {
-            PacketHandler.sendNewMaskPacket((byte) 0, this, null);
+            if (!worldObj.isRemote) {
+                PacketHandler.sendNewMaskPacket((byte) 0, this, null);
+            }
+        }
+    }
+
+    public void teleportPlayer(EntityPlayerMP player) {
+        if (multiblock.hasDestination()) {
+            multiblock.teleportToDestination(player);
         }
     }
 
@@ -78,21 +76,6 @@ public class TileEntityWallTeleporter extends TileEntity implements IInventory {
 
         compound.setInteger("MaskId", mask[0]);
         compound.setInteger("MaskMeta", mask[1]);
-
-        NBTTagList items = new NBTTagList();
-
-        for (int i = 0; i < getSizeInventory(); i++) {
-            ItemStack stack = getStackInSlot(i);
-
-            if (stack != null) {
-                NBTTagCompound item = new NBTTagCompound();
-                item.setByte("Slot", (byte) i);
-                stack.writeToNBT(item);
-                items.appendTag(item);
-            }
-        }
-
-        compound.setTag("Items", items);
 
         if (multiblock.isController(this)) {
             multiblock.writeToNBT(compound);
@@ -106,31 +89,34 @@ public class TileEntityWallTeleporter extends TileEntity implements IInventory {
         mask[0] = compound.getInteger("MaskId");
         mask[1] = compound.getInteger("MaskMeta");
 
-        NBTTagList items = compound.getTagList("Items");
-
-        for (int i = 0; i < items.tagCount(); i++) {
-            NBTTagCompound item = (NBTTagCompound) items.tagAt(i);
-            int slot = item.getByte("Slot");
-
-            if (slot >= 0 && slot < getSizeInventory()) {
-                setInventorySlotContents(slot, ItemStack.loadItemStackFromNBT(item));
-            }
-        }
-
         if (compound.hasKey("WTMultiblock")) {
             new MultiblockWallTeleporter(this);
             multiblock.readFromNBT(compound);
         }
     }
 
+    private int     countdown      = 10;
+    private boolean startCountdown = false;
+
     @Override
     public void updateEntity() {
-        if (!loaded && hasWorldObj() && !worldObj.isRemote) {
+        if (!loaded && hasWorldObj()) {
             loaded = true;
 
-            if (multiblock != null) {
+            if (!worldObj.isRemote && multiblock != null) {
                 multiblock.init(worldObj);
+            } else if (worldObj.isRemote) {
+                notifyNeighboursOfConnectionChanged();
+                startCountdown = true;
             }
+        }
+
+        if (countdown != -1 && startCountdown) {
+            countdown--;
+        }
+
+        if (countdown == 0 && multiblock.isController(this)) {
+            PacketHandler.requestMultiblockInfoPacket(this);
         }
     }
 
@@ -147,79 +133,53 @@ public class TileEntityWallTeleporter extends TileEntity implements IInventory {
     public void invalidate() {
         super.invalidate();
 
-        if (!worldObj.isRemote) {
-            notifyNeighboursOfConnectionChanged();
-        }
+        notifyNeighboursOfConnectionChanged();
     }
 
-//    @Override
-//    public void onChunkUnload() {
-//        Chunk chunk = worldObj.getChunkFromBlockCoords(xCoord, zCoord);
-//        System.out.println("Chunk loaded: " + worldObj.getChunkProvider().loadChunk(chunk.xPosition, chunk.zPosition).isChunkLoaded);
-//    }
-
-
-    // Inventory implementation
-
-    private ItemStack[] items = new ItemStack[2];
 
     @Override
     public int getSizeInventory() {
-        return items.length;
+        return multiblock.getSizeInventory();
     }
 
     @Override
     public ItemStack getStackInSlot(int i) {
-        return items[i];
+        return multiblock.getStackInSlot(i);
     }
 
     @Override
-    public ItemStack decrStackSize(int i, int count) {
-        ItemStack stack = getStackInSlot(i);
-
-        if (stack != null) {
-            if (stack.stackSize <= count) {
-                setInventorySlotContents(i, null);
-            } else {
-                stack = stack.splitStack(count);
-                onInventoryChanged();
-            }
-        }
-
-        return stack;
+    public ItemStack decrStackSize(int i, int j) {
+        return multiblock.decrStackSize(i, j);
     }
 
     @Override
     public ItemStack getStackInSlotOnClosing(int i) {
-        ItemStack stack = getStackInSlot(i);
-        setInventorySlotContents(i, null);
-        return stack;
+        return multiblock.getStackInSlotOnClosing(i);
     }
 
     @Override
-    public void setInventorySlotContents(int i, ItemStack itemstack) {
-        items[i] = itemstack;
-        onInventoryChanged();
+    public void setInventorySlotContents(int i, ItemStack stack) {
+        multiblock.setInventorySlotContents(i, stack);
     }
 
     @Override
     public String getInvName() {
-        return BlockInfo.WT_NAME;
+        return multiblock.getInvName();
     }
 
     @Override
     public boolean isInvNameLocalized() {
-        return true;
+        return multiblock.isInvNameLocalized();
     }
 
     @Override
     public int getInventoryStackLimit() {
-        return 1;
+        return multiblock.getInventoryStackLimit();
     }
 
     @Override
     public boolean isUseableByPlayer(EntityPlayer player) {
-        return player.getDistanceSq(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5) <= 64;
+        return multiblock.isUseableByPlayer(player);
     }
 
     @Override
@@ -232,6 +192,6 @@ public class TileEntityWallTeleporter extends TileEntity implements IInventory {
 
     @Override
     public boolean isItemValidForSlot(int i, ItemStack stack) {
-        return true;
+        return multiblock.isItemValidForSlot(i, stack);
     }
 }
