@@ -75,7 +75,9 @@ public class ContainerWallTeleporter extends Container {
     public void onContainerClosed(EntityPlayer player) {
         super.onContainerClosed(player);
 
-        multiblock.container = null;
+        if (crafters.size() == 0) {
+            multiblock.container = null;
+        }
     }
 
     public void sendSlotContentsToCrafters(int i, ItemStack stack) {
