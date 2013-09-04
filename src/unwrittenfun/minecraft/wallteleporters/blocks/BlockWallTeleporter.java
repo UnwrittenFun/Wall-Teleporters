@@ -108,6 +108,7 @@ public class BlockWallTeleporter extends BlockContainer {
     @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player,
                                     int side, float hitX, float hitY, float hitZ) {
+        boolean result = true;
         TileEntity tileEntity = world.getBlockTileEntity(x, y, z);
 
         if (tileEntity instanceof TileEntityWallTeleporter) {
@@ -115,7 +116,10 @@ public class BlockWallTeleporter extends BlockContainer {
 
             ItemStack held = player.inventory.getCurrentItem();
             if (!teleporter.multiblock.isLocked() && held != null && held.getItem() instanceof ItemBlock) {
-                if (!world.isRemote) {
+                if (((ItemBlock) held.getItem()).getBlockID() == WTBlocks.wallTeleporter.blockID &&
+                    teleporter.mask[0] == 0) {
+                    result = false;
+                } else if (!world.isRemote) {
                     teleporter.setMask(((ItemBlock) held.getItem()).getBlockID(), held.getItemDamage());
                 }
             } else {
@@ -123,7 +127,7 @@ public class BlockWallTeleporter extends BlockContainer {
             }
         }
 
-        return true;
+        return result;
     }
 
     @Override
