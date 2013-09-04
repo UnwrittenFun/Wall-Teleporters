@@ -49,13 +49,13 @@ public class GuiWallTeleporter extends GuiContainer {
             int infoDy = 25;
             int infoSpacing = 10;
 
+            String worldString = multiblock.destinationWorldName;
             String coordString = "(" + (int) multiblock.destinationX + ", " + (int) multiblock.destinationY + ", " +
                                  (int) multiblock.destinationZ + ")";
-            int worldWidth = fontRenderer.getStringWidth("World Id: " + multiblock.destinationWorldId);
+            int worldWidth = fontRenderer.getStringWidth(worldString);
             int coordWidth = fontRenderer.getStringWidth(coordString);
 
-            fontRenderer .drawString("World Id: " + multiblock.destinationWorldId, 85 - (worldWidth / 2),
-                    infoDy, 0x404040);
+            fontRenderer.drawString(worldString, 85 - (worldWidth / 2), infoDy, 0x404040);
             fontRenderer.drawString(coordString, 85 - (coordWidth / 2), infoDy + infoSpacing, 0x404040);
         }
     }

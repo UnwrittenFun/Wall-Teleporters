@@ -27,11 +27,12 @@ public class MultiblockWallTeleporter implements IInventory {
     public ArrayList<TileEntityWallTeleporter> teleporters;
     public TileEntityWallTeleporter            controller;
 
-    public int   destinationWorldId;
-    public float destinationX;
+    public String destinationWorldName = "";
+    public int    destinationWorldId;
+    public float  destinationX;
+    public float  destinationZ;
+    public float  destinationRotation;
     public float destinationY = -1;
-    public float destinationZ;
-    public float destinationRotation;
 
     private boolean locked      = false;
     private boolean useRotation = true;
@@ -77,7 +78,8 @@ public class MultiblockWallTeleporter implements IInventory {
         return destinationY >= 0;
     }
 
-    public void setDestination(int worldId, float x, float y, float z, float r) {
+    public void setDestination(String worldName, int worldId, float x, float y, float z, float r) {
+        destinationWorldName = worldName;
         destinationWorldId = worldId;
         destinationX = x;
         destinationY = y;
@@ -90,7 +92,7 @@ public class MultiblockWallTeleporter implements IInventory {
     }
 
     public void clearDestination() {
-        setDestination(0, 0F, -1F, 0F, 0F);
+        setDestination("", 0, 0F, -1F, 0F, 0F);
     }
 
     public void teleportToDestination(EntityPlayerMP player) {
@@ -317,13 +319,14 @@ public class MultiblockWallTeleporter implements IInventory {
                 if (stackCompound.hasKey("LocationData")) {
                     NBTTagCompound locationCompound = stackCompound.getCompoundTag("LocationData");
 
+                    String worldName = locationCompound.getString("worldName");
                     int worldId = locationCompound.getInteger("worldId");
                     float x = locationCompound.getFloat("locationX");
                     float y = locationCompound.getFloat("locationY");
                     float z = locationCompound.getFloat("locationZ");
                     float r = locationCompound.getFloat("locationRotation");
 
-                    setDestination(worldId, x, y, z, r);
+                    setDestination(worldName, worldId, x, y, z, r);
 
                     setInventorySlotContents(0, null);
                     setInventorySlotContents(1, stack);

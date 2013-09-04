@@ -182,6 +182,7 @@ public class PacketHandler implements IPacketHandler {
         float dY = reader.readFloat();
         float dZ = reader.readFloat();
         float dR = reader.readFloat();
+        String dWorldName = reader.readUTF();
 
         if (player.worldObj.provider.dimensionId == cWorldId) {
             TileEntity tileEntity = player.worldObj.getBlockTileEntity(cX, cY, cZ);
@@ -189,7 +190,7 @@ public class PacketHandler implements IPacketHandler {
             if (tileEntity instanceof TileEntityWallTeleporter) {
                 TileEntityWallTeleporter teleporter = ((TileEntityWallTeleporter) tileEntity);
 
-                teleporter.multiblock.setDestination(dWorldId, dX, dY, dZ, dR);
+                teleporter.multiblock.setDestination(dWorldName, dWorldId, dX, dY, dZ, dR);
             }
         }
     }
@@ -209,6 +210,7 @@ public class PacketHandler implements IPacketHandler {
             dataStream.writeFloat(multiblock.destinationY);
             dataStream.writeFloat(multiblock.destinationZ);
             dataStream.writeFloat(multiblock.destinationRotation);
+            dataStream.writeUTF(multiblock.destinationWorldName);
 
             if (player == null) {
                 PacketDispatcher.sendPacketToAllInDimension(
