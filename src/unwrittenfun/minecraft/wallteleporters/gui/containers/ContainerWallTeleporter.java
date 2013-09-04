@@ -23,17 +23,17 @@ public class ContainerWallTeleporter extends Container {
         multiblock.container = this;
 
         for (int x = 0; x < 9; x++) {
-            addSlotToContainer(new Slot(invPlayer, x, 8 + 18 * x, 142));
+            addSlotToContainer(new Slot(invPlayer, x, 8 + 18 * x, 133));
         }
 
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 9; x++) {
-                addSlotToContainer(new Slot(invPlayer, x + y * 9 + 9, 8 + 18 * x, 84 + 18 * y));
+                addSlotToContainer(new Slot(invPlayer, x + y * 9 + 9, 8 + 18 * x, 75 + 18 * y));
             }
         }
 
-        addSlotToContainer(new SlotGpsChip(multiblock, 0, 149, 11));
-        addSlotToContainer(new SlotGpsChip(multiblock, 1, 149, 56));
+        addSlotToContainer(new SlotGpsChip(multiblock, 0, 152, 8));
+        addSlotToContainer(new SlotGpsChip(multiblock, 1, 152, 53));
     }
 
     @Override

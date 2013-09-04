@@ -28,7 +28,7 @@ public class GuiWallTeleporter extends GuiContainer {
         this.multiblock = multiblock;
 
         xSize = 176;
-        ySize = 166;
+        ySize = 157;
     }
 
     @Override
@@ -41,16 +41,22 @@ public class GuiWallTeleporter extends GuiContainer {
 
     @Override
     protected void drawGuiContainerForegroundLayer(int x, int y) {
-        fontRenderer.drawString(multiblock.getInvName(), 10, 10, 0x404040);
+        int titleWidth = fontRenderer.getStringWidth(multiblock.getInvName());
+        fontRenderer.drawString(multiblock.getInvName(), 85 - (titleWidth / 2), 10, 0x404040);
+
 
         if (multiblock.hasDestination()) {
-            int infoX = 10;
             int infoDy = 25;
             int infoSpacing = 10;
 
-            fontRenderer.drawString("World Id: " + multiblock.destinationWorldId, infoX, infoDy, 0x404040);
-            fontRenderer.drawString("(" + (int) multiblock.destinationX + ", " + (int) multiblock.destinationY + ", " +
-                                    (int) multiblock.destinationZ + ")", infoX, infoDy + infoSpacing, 0x404040);
+            String coordString = "(" + (int) multiblock.destinationX + ", " + (int) multiblock.destinationY + ", " +
+                                 (int) multiblock.destinationZ + ")";
+            int worldWidth = fontRenderer.getStringWidth("World Id: " + multiblock.destinationWorldId);
+            int coordWidth = fontRenderer.getStringWidth(coordString);
+
+            fontRenderer .drawString("World Id: " + multiblock.destinationWorldId, 85 - (worldWidth / 2),
+                    infoDy, 0x404040);
+            fontRenderer.drawString(coordString, 85 - (coordWidth / 2), infoDy + infoSpacing, 0x404040);
         }
     }
 
@@ -66,20 +72,20 @@ public class GuiWallTeleporter extends GuiContainer {
 
     private void initButtons() {
         buttonList.clear();
-        buttonList.add(new GuiButton(0, guiLeft + 10, guiTop + 52, 40, 20, "Clear"));
+        buttonList.add(new GuiIconButton(0, guiLeft + 7, guiTop + 7, 0, 0));
 
         oldLocked = multiblock.isLocked();
         if (oldLocked) {
-            buttonList.add(new GuiButton(1, guiLeft + 54, guiTop + 52, 45, 20, "Unlock"));
+            buttonList.add(new GuiIconButton(1, guiLeft + 7, guiTop + 21, 16, 0));
         } else {
-            buttonList.add(new GuiButton(2, guiLeft + 54, guiTop + 52, 45, 20, "Lock"));
+            buttonList.add(new GuiIconButton(2, guiLeft + 7, guiTop + 21, 32, 0));
         }
 
         oldRot = multiblock.shouldUseRotation();
         if (oldRot) {
-            buttonList.add(new GuiButton(3, guiLeft + 90, guiTop + 52, 45, 20, "Don't use rotation"));
+            buttonList.add(new GuiIconButton(3, guiLeft + 7, guiTop + 35, 48, 0));
         } else {
-            buttonList.add(new GuiButton(4, guiLeft + 90, guiTop + 52, 45, 20, "Use Rotation"));
+            buttonList.add(new GuiIconButton(4, guiLeft + 7, guiTop + 35, 64, 0));
         }
     }
 
