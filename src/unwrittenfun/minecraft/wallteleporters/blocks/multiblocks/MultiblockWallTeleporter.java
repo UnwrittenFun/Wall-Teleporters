@@ -27,12 +27,14 @@ public class MultiblockWallTeleporter implements IInventory {
     public ArrayList<TileEntityWallTeleporter> teleporters;
     public TileEntityWallTeleporter            controller;
 
-    public int destinationWorldId;
-    public int destinationX;
-    public int destinationY = -1;
-    public int destinationZ;
+    public int   destinationWorldId;
+    public float destinationX;
+    public float destinationY = -1;
+    public float destinationZ;
+    public float destinationRotation;
 
-    private boolean locked = false;
+    private boolean locked      = false;
+    private boolean useRotation = true;
 
     public ContainerWallTeleporter container;
 
@@ -51,7 +53,7 @@ public class MultiblockWallTeleporter implements IInventory {
         this.locked = locked;
 
         if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
-            PacketHandler.sendLockedPacket(this, null);
+            PacketHandler.sendLockedOrRotationPacket((byte) 0, this, null);
         }
     }
 
@@ -59,15 +61,28 @@ public class MultiblockWallTeleporter implements IInventory {
         return locked;
     }
 
+    public void setShouldUseRotation(boolean useRotation) {
+        this.useRotation = useRotation;
+
+        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
+            PacketHandler.sendLockedOrRotationPacket((byte) 1, this, null);
+        }
+    }
+
+    public boolean shouldUseRotation() {
+        return useRotation;
+    }
+
     public boolean hasDestination() {
         return destinationY >= 0;
     }
 
-    public void setDestination(int worldId, int x, int y, int z) {
+    public void setDestination(int worldId, float x, float y, float z, float r) {
         destinationWorldId = worldId;
         destinationX = x;
         destinationY = y;
         destinationZ = z;
+        destinationRotation = r;
 
         if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
             PacketHandler.sendDestinationPacket(this, null);
@@ -75,7 +90,7 @@ public class MultiblockWallTeleporter implements IInventory {
     }
 
     public void clearDestination() {
-        setDestination(0, 0, -1, 0);
+        setDestination(0, 0F, -1F, 0F, 0F);
     }
 
     public void teleportToDestination(EntityPlayerMP player) {
@@ -83,8 +98,12 @@ public class MultiblockWallTeleporter implements IInventory {
             player.travelToDimension(destinationWorldId);
         }
 
-        player.playerNetServerHandler.setPlayerLocation(destinationX - 0.5F, destinationY + 0.5F, destinationZ - 0.5F,
-                player.rotationYaw, player.rotationPitch);
+        float teleportR = player.rotationYaw;
+
+        if (useRotation) teleportR = destinationRotation;
+
+        player.playerNetServerHandler.setPlayerLocation(destinationX, destinationY + 0.5F, destinationZ,
+                teleportR, player.rotationPitch);
     }
 
     public boolean hasController() {
@@ -128,9 +147,10 @@ public class MultiblockWallTeleporter implements IInventory {
 
         if (hasDestination()) {
             wtCompound.setInteger("destWorldId", destinationWorldId);
-            wtCompound.setInteger("destX", destinationX);
-            wtCompound.setInteger("destY", destinationY);
-            wtCompound.setInteger("destZ", destinationZ);
+            wtCompound.setFloat("destX", destinationX);
+            wtCompound.setFloat("destY", destinationY);
+            wtCompound.setFloat("destZ", destinationZ);
+            wtCompound.setFloat("destRotation", destinationRotation);
         }
 
         NBTTagCompound wtBlocksCompound = new NBTTagCompound();
@@ -162,9 +182,10 @@ public class MultiblockWallTeleporter implements IInventory {
 
         if (wtCompound.hasKey("destWorldId")) {
             destinationWorldId = wtCompound.getInteger("destWorldId");
-            destinationX = wtCompound.getInteger("destX");
-            destinationY = wtCompound.getInteger("destY");
-            destinationZ = wtCompound.getInteger("destZ");
+            destinationX = wtCompound.getFloat("destX");
+            destinationY = wtCompound.getFloat("destY");
+            destinationZ = wtCompound.getFloat("destZ");
+            destinationRotation = wtCompound.getFloat("destRotation");
         }
 
         NBTTagCompound wtBlocksCompound = wtCompound.getCompoundTag("WTBlocks");
@@ -297,11 +318,12 @@ public class MultiblockWallTeleporter implements IInventory {
                     NBTTagCompound locationCompound = stackCompound.getCompoundTag("LocationData");
 
                     int worldId = locationCompound.getInteger("worldId");
-                    int x = locationCompound.getInteger("locationX");
-                    int y = locationCompound.getInteger("locationY");
-                    int z = locationCompound.getInteger("locationZ");
+                    float x = locationCompound.getFloat("locationX");
+                    float y = locationCompound.getFloat("locationY");
+                    float z = locationCompound.getFloat("locationZ");
+                    float r = locationCompound.getFloat("locationRotation");
 
-                    setDestination(worldId, x, y, z);
+                    setDestination(worldId, x, y, z, r);
 
                     setInventorySlotContents(0, null);
                     setInventorySlotContents(1, stack);

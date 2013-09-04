@@ -55,7 +55,7 @@ public class PacketHandler implements IPacketHandler {
                 onButtonPacket(reader, entityPlayer);
                 break;
             case 6:
-                onLockedPacket(reader, entityPlayer);
+                onLockedOrRotationPacket(reader, entityPlayer);
                 break;
         }
     }
@@ -178,9 +178,10 @@ public class PacketHandler implements IPacketHandler {
         int cY = reader.readInt();
         int cZ = reader.readInt();
         int dWorldId = reader.readInt();
-        int dX = reader.readInt();
-        int dY = reader.readInt();
-        int dZ = reader.readInt();
+        float dX = reader.readFloat();
+        float dY = reader.readFloat();
+        float dZ = reader.readFloat();
+        float dR = reader.readFloat();
 
         if (player.worldObj.provider.dimensionId == cWorldId) {
             TileEntity tileEntity = player.worldObj.getBlockTileEntity(cX, cY, cZ);
@@ -188,7 +189,7 @@ public class PacketHandler implements IPacketHandler {
             if (tileEntity instanceof TileEntityWallTeleporter) {
                 TileEntityWallTeleporter teleporter = ((TileEntityWallTeleporter) tileEntity);
 
-                teleporter.multiblock.setDestination(dWorldId, dX, dY, dZ);
+                teleporter.multiblock.setDestination(dWorldId, dX, dY, dZ, dR);
             }
         }
     }
@@ -204,9 +205,10 @@ public class PacketHandler implements IPacketHandler {
             dataStream.writeInt(multiblock.controller.yCoord);
             dataStream.writeInt(multiblock.controller.zCoord);
             dataStream.writeInt(multiblock.destinationWorldId);
-            dataStream.writeInt(multiblock.destinationX);
-            dataStream.writeInt(multiblock.destinationY);
-            dataStream.writeInt(multiblock.destinationZ);
+            dataStream.writeFloat(multiblock.destinationX);
+            dataStream.writeFloat(multiblock.destinationY);
+            dataStream.writeFloat(multiblock.destinationZ);
+            dataStream.writeFloat(multiblock.destinationRotation);
 
             if (player == null) {
                 PacketDispatcher.sendPacketToAllInDimension(
@@ -234,7 +236,8 @@ public class PacketHandler implements IPacketHandler {
             TileEntityWallTeleporter teleporter = ((TileEntityWallTeleporter) tileEntity);
 
             sendDestinationPacket(teleporter.multiblock, player);
-            sendLockedPacket(teleporter.multiblock, player);
+            sendLockedOrRotationPacket((byte) 0, teleporter.multiblock, player);
+            sendLockedOrRotationPacket((byte) 1, teleporter.multiblock, player);
         }
     }
 
@@ -262,22 +265,26 @@ public class PacketHandler implements IPacketHandler {
 
         switch (guiId) {
             case 0:
-                switch (buttonId) {
-                    case 0:
-                        if (container instanceof ContainerWallTeleporter) {
-                            ((ContainerWallTeleporter) container).multiblock.clearDestination();
-                        }
-                        break;
-                    case 1:
-                        if (container instanceof ContainerWallTeleporter) {
-                            ((ContainerWallTeleporter) container).multiblock.setLocked(false);
-                        }
-                        break;
-                    case 2:
-                        if (container instanceof ContainerWallTeleporter) {
-                            ((ContainerWallTeleporter) container).multiblock.setLocked(true);
-                        }
-                        break;
+                if (container instanceof ContainerWallTeleporter) {
+                    ContainerWallTeleporter containerTeleporter = ((ContainerWallTeleporter) container);
+                    switch (buttonId) {
+                        case 0:
+                            containerTeleporter.multiblock.clearDestination();
+                            break;
+                        case 1:
+                            containerTeleporter.multiblock.setLocked(false);
+                            break;
+                        case 2:
+                            containerTeleporter.multiblock.setLocked(true);
+                            break;
+                        case 3:
+                            containerTeleporter.multiblock.setShouldUseRotation(false);
+                            break;
+                        case 4:
+                            containerTeleporter.multiblock.setShouldUseRotation(true);
+                            break;
+                    }
+                    break;
                 }
                 break;
         }
@@ -298,12 +305,13 @@ public class PacketHandler implements IPacketHandler {
         }
     }
 
-    public void onLockedPacket(ByteArrayDataInput reader, EntityPlayer player) {
+    public void onLockedOrRotationPacket(ByteArrayDataInput reader, EntityPlayer player) {
+        byte id = reader.readByte();
         int cWorldId = reader.readInt();
         int cX = reader.readInt();
         int cY = reader.readInt();
         int cZ = reader.readInt();
-        boolean locked = reader.readBoolean();
+        boolean bool = reader.readBoolean();
 
         if (player.worldObj.provider.dimensionId == cWorldId) {
             TileEntity tileEntity = player.worldObj.getBlockTileEntity(cX, cY, cZ);
@@ -311,22 +319,37 @@ public class PacketHandler implements IPacketHandler {
             if (tileEntity instanceof TileEntityWallTeleporter) {
                 TileEntityWallTeleporter teleporter = ((TileEntityWallTeleporter) tileEntity);
 
-                teleporter.multiblock.setLocked(locked);
+                switch (id) {
+                    case 0:
+                        teleporter.multiblock.setLocked(bool);
+                        break;
+                    case 1:
+                        teleporter.multiblock.setShouldUseRotation(bool);
+                        break;
+                }
             }
         }
     }
 
-    public static void sendLockedPacket(MultiblockWallTeleporter multiblock, Player player) {
+    public static void sendLockedOrRotationPacket(byte id, MultiblockWallTeleporter multiblock, Player player) {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         DataOutputStream dataStream = new DataOutputStream(byteStream);
 
         try {
             dataStream.writeByte((byte) 6);
+            dataStream.writeByte(id);
             dataStream.writeInt(multiblock.controller.worldObj.provider.dimensionId);
             dataStream.writeInt(multiblock.controller.xCoord);
             dataStream.writeInt(multiblock.controller.yCoord);
             dataStream.writeInt(multiblock.controller.zCoord);
-            dataStream.writeBoolean(multiblock.isLocked());
+
+            switch (id) {
+                case 0:
+                    dataStream.writeBoolean(multiblock.isLocked());
+                    break;
+                case 1:
+                    dataStream.writeBoolean(multiblock.shouldUseRotation());
+            }
 
             if (player == null) {
                 PacketDispatcher.sendPacketToAllInDimension(

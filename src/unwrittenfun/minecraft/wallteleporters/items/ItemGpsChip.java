@@ -60,9 +60,10 @@ public class ItemGpsChip extends Item {
 
                 NBTTagCompound compound = new NBTTagCompound();
                 compound.setInteger("worldId", player.worldObj.provider.dimensionId);
-                compound.setInteger("locationX", (int) player.posX);
-                compound.setInteger("locationY", (int) player.posY);
-                compound.setInteger("locationZ", (int) player.posZ);
+                compound.setFloat("locationX", (float) player.posX);
+                compound.setFloat("locationY", (float) player.posY);
+                compound.setFloat("locationZ", (float) player.posZ);
+                compound.setFloat("locationRotation", player.rotationYaw);
                 stackCompound.setCompoundTag("LocationData", compound);
 
                 stack.setTagCompound(stackCompound);
@@ -77,12 +78,15 @@ public class ItemGpsChip extends Item {
 
     @Override
     public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean par4) {
-        if (hasTeleportData(stack)) {
+        if (hasTeleportData(stack) && stack.getItemDamage() == 1) {
+            list.add("§eSneak right click to unlink");
             NBTTagCompound teleportCompound = stack.getTagCompound().getCompoundTag("LocationData");
             list.add("World Id: " + teleportCompound.getInteger("worldId"));
-            list.add("X: " + teleportCompound.getInteger("locationX"));
-            list.add("Y: " + teleportCompound.getInteger("locationY"));
-            list.add("Z: " + teleportCompound.getInteger("locationZ"));
+            list.add("X: " + (int) teleportCompound.getFloat("locationX"));
+            list.add("Y: " + (int) teleportCompound.getFloat("locationY"));
+            list.add("Z: " + (int) teleportCompound.getFloat("locationZ"));
+        } else {
+            list.add("§eRight click to link");
         }
     }
 
