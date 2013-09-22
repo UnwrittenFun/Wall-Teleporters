@@ -148,6 +148,7 @@ public class MultiblockWallTeleporter implements IInventory {
         compound.setBoolean("Locked", locked);
 
         if (hasDestination()) {
+            wtCompound.setString("destWorldName", destinationWorldName);
             wtCompound.setInteger("destWorldId", destinationWorldId);
             wtCompound.setFloat("destX", destinationX);
             wtCompound.setFloat("destY", destinationY);
@@ -183,6 +184,7 @@ public class MultiblockWallTeleporter implements IInventory {
         locked = compound.getBoolean("Locked");
 
         if (wtCompound.hasKey("destWorldId")) {
+            destinationWorldName = wtCompound.getString("destWorldName");
             destinationWorldId = wtCompound.getInteger("destWorldId");
             destinationX = wtCompound.getFloat("destX");
             destinationY = wtCompound.getFloat("destY");
