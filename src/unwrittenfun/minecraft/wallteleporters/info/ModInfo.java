@@ -8,7 +8,7 @@ package unwrittenfun.minecraft.wallteleporters.info;
 public class ModInfo {
     public static final String ID               = "WallTeleporters";
     public static final String NAME             = "Wall Teleporters";
-    public static final String VERSION          = "0.1.0";
+    public static final String VERSION          = "0.1.2";
     public static final String CHANNEL          = "wallteleporters";
     public static final String TEXTURE_LOCATION = "wallteleporters";
 }
