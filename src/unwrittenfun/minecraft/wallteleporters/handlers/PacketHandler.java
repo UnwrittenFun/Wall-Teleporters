@@ -6,12 +6,16 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.IPacketHandler;
 import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
+import cpw.mods.fml.server.FMLServerHandler;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.network.INetworkManager;
 import net.minecraft.network.packet.Packet250CustomPayload;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.DimensionManager;
 import unwrittenfun.minecraft.wallteleporters.blocks.multiblocks.MultiblockWallTeleporter;
 import unwrittenfun.minecraft.wallteleporters.blocks.tileentities.TileEntityWallTeleporter;
@@ -56,6 +60,12 @@ public class PacketHandler implements IPacketHandler {
                 break;
             case 6:
                 onLockedOrRotationPacket(reader, entityPlayer);
+                break;
+            case 7:
+                onComputerClearDestinationPacket(reader, entityPlayer);
+                break;
+            case 8:
+                onComputerUseRotationOrLockedPacket(reader, entityPlayer);
                 break;
         }
     }
@@ -363,6 +373,85 @@ public class PacketHandler implements IPacketHandler {
             }
         } catch (IOException ex) {
             System.err.append("[Wall Teleporters] Failed to send locked packet");
+        }
+    }
+
+    public void onComputerClearDestinationPacket(ByteArrayDataInput reader, EntityPlayer player) {
+        int cWorldId = reader.readInt();
+        int cX = reader.readInt();
+        int cY = reader.readInt();
+        int cZ = reader.readInt();
+
+        if (player.worldObj.provider.dimensionId == cWorldId) {
+            TileEntity tileEntity = player.worldObj.getBlockTileEntity(cX, cY, cZ);
+
+            if (tileEntity instanceof TileEntityWallTeleporter) {
+                TileEntityWallTeleporter teleporter = ((TileEntityWallTeleporter) tileEntity);
+
+                teleporter.multiblock.clearDestination();
+            }
+        }
+    }
+
+    public static void sendComputerClearDestinationPacket(MultiblockWallTeleporter multiblock) {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        DataOutputStream dataStream = new DataOutputStream(byteStream);
+
+        try {
+            dataStream.writeByte((byte) 7);
+            dataStream.writeInt(multiblock.controller.worldObj.provider.dimensionId);
+            dataStream.writeInt(multiblock.controller.xCoord);
+            dataStream.writeInt(multiblock.controller.yCoord);
+            dataStream.writeInt(multiblock.controller.zCoord);
+
+            PacketDispatcher.sendPacketToServer(PacketDispatcher.getPacket(ModInfo.CHANNEL, byteStream.toByteArray()));
+        } catch (IOException ex) {
+            System.err.append("[Wall Teleporters] Failed to send computer clear destination packet");
+        }
+    }
+
+    public void onComputerUseRotationOrLockedPacket(ByteArrayDataInput reader, EntityPlayer player) {
+        byte id = reader.readByte();
+        int cWorldId = reader.readInt();
+        int cX = reader.readInt();
+        int cY = reader.readInt();
+        int cZ = reader.readInt();
+        boolean value = reader.readBoolean();
+
+        if (player.worldObj.provider.dimensionId == cWorldId) {
+            TileEntity tileEntity = player.worldObj.getBlockTileEntity(cX, cY, cZ);
+
+            if (tileEntity instanceof TileEntityWallTeleporter) {
+                TileEntityWallTeleporter teleporter = ((TileEntityWallTeleporter) tileEntity);
+
+                switch (id) {
+                    case 0:
+                        teleporter.multiblock.setShouldUseRotation(value);
+                        break;
+                    case 1:
+                        teleporter.multiblock.setLocked(value);
+                        break;
+                }
+            }
+        }
+    }
+
+    public static void sendComputerUseRotationOrLockedPacket(int id, MultiblockWallTeleporter multiblock, boolean value) {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        DataOutputStream dataStream = new DataOutputStream(byteStream);
+
+        try {
+            dataStream.writeByte((byte) 8);
+            dataStream.writeByte((byte) id);
+            dataStream.writeInt(multiblock.controller.worldObj.provider.dimensionId);
+            dataStream.writeInt(multiblock.controller.xCoord);
+            dataStream.writeInt(multiblock.controller.yCoord);
+            dataStream.writeInt(multiblock.controller.zCoord);
+            dataStream.writeBoolean(value);
+
+            PacketDispatcher.sendPacketToServer(PacketDispatcher.getPacket(ModInfo.CHANNEL, byteStream.toByteArray()));
+        } catch (IOException ex) {
+            System.err.append("[Wall Teleporters] Failed to send computer use rotation or locked packet");
         }
     }
 }

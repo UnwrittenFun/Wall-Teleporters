@@ -1,6 +1,9 @@
 package unwrittenfun.minecraft.wallteleporters.blocks.tileentities;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import dan200.computer.api.IComputerAccess;
+import dan200.computer.api.ILuaContext;
+import dan200.computer.api.IPeripheral;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
@@ -17,7 +20,7 @@ import unwrittenfun.minecraft.wallteleporters.info.BlockInfo;
  * Author: UnwrittenFun
  * License: Minecraft Mod Public License (Version 1.0.1)
  */
-public class TileEntityWallTeleporter extends TileEntity implements IInventory {
+public class TileEntityWallTeleporter extends TileEntity implements IInventory, IPeripheral {
     public  MultiblockWallTeleporter multiblock = new MultiblockWallTeleporter(this);
     public  int[]                    mask       = new int[]{ 0, 0 };
     private boolean                  loaded     = false;
@@ -193,5 +196,73 @@ public class TileEntityWallTeleporter extends TileEntity implements IInventory {
     @Override
     public boolean isItemValidForSlot(int i, ItemStack stack) {
         return multiblock.isItemValidForSlot(i, stack);
+    }
+
+    // IPeripheral Implementation
+
+    @Override
+    public String getType() {
+        return "wallTeleporter";
+    }
+
+    @Override
+    public String[] getMethodNames() {
+        return new String[]{ "getX", "getY", "getZ", "getRotation", "getWorldId", "getWorldName", "clear",
+                             "hasDestination", "setUseRotation", "getUseRotation", "setMaskLocked", "isMaskLocked" };
+    }
+
+    @Override
+    public Object[] callMethod(IComputerAccess computer, ILuaContext context, int method, Object[] arguments)
+            throws Exception {
+        switch (method) {
+            case 0: // getX
+                return new Object[]{ multiblock.destinationX };
+            case 1: // getY
+                return new Object[]{ multiblock.destinationY };
+            case 2: // getZ
+                return new Object[]{ multiblock.destinationZ };
+            case 3: // getRotation
+                return new Object[]{ multiblock.destinationRotation };
+            case 4: // getWorldId
+                return new Object[]{ multiblock.destinationWorldId };
+            case 5: // getWorldName
+                return new Object[]{ multiblock.destinationWorldName };
+            case 6: // clear
+                multiblock.clearDestination();
+                PacketHandler.sendComputerClearDestinationPacket(multiblock);
+                break;
+            case 7: // hasDestination
+                return new Object[] { multiblock.hasDestination() };
+            case 8: // setUseRotation
+                if (!(arguments[0] instanceof Boolean)) throw new Exception("Argument 1 expected to be boolean");
+                multiblock.setShouldUseRotation((Boolean) arguments[0]);
+                PacketHandler.sendComputerUseRotationOrLockedPacket(0, multiblock, (Boolean) arguments[0]);
+                break;
+            case 9: // getUseRotation
+                return new Object[] { multiblock.shouldUseRotation() };
+            case 10: // setMaskLocked
+                if (!(arguments[0] instanceof Boolean)) throw new Exception("Argument 1 expected to be boolean");
+                multiblock.setLocked((Boolean) arguments[0]);
+                PacketHandler.sendComputerUseRotationOrLockedPacket(1, multiblock, (Boolean) arguments[0]);
+                break;
+            case 11: // isMaskLocked
+                return new Object[] { multiblock.isLocked() };
+        }
+        return new Object[0];
+    }
+
+    @Override
+    public boolean canAttachToSide(int side) {
+        return true;
+    }
+
+    @Override
+    public void attach(IComputerAccess computer) {
+
+    }
+
+    @Override
+    public void detach(IComputerAccess computer) {
+
     }
 }
