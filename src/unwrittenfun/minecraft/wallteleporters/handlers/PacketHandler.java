@@ -67,6 +67,9 @@ public class PacketHandler implements IPacketHandler {
             case 8:
                 onComputerUseRotationOrLockedPacket(reader, entityPlayer);
                 break;
+            case 9:
+                onComputerSetMaskPacket(reader, entityPlayer);
+                break;
         }
     }
 
@@ -452,6 +455,44 @@ public class PacketHandler implements IPacketHandler {
             PacketDispatcher.sendPacketToServer(PacketDispatcher.getPacket(ModInfo.CHANNEL, byteStream.toByteArray()));
         } catch (IOException ex) {
             System.err.append("[Wall Teleporters] Failed to send computer use rotation or locked packet");
+        }
+    }
+
+    public void onComputerSetMaskPacket(ByteArrayDataInput reader, EntityPlayer player) {
+        int cWorldId = reader.readInt();
+        int cX = reader.readInt();
+        int cY = reader.readInt();
+        int cZ = reader.readInt();
+        int id = reader.readInt();
+        int meta = reader.readInt();
+
+        if (player.worldObj.provider.dimensionId == cWorldId) {
+            TileEntity tileEntity = player.worldObj.getBlockTileEntity(cX, cY, cZ);
+
+            if (tileEntity instanceof TileEntityWallTeleporter) {
+                TileEntityWallTeleporter teleporter = ((TileEntityWallTeleporter) tileEntity);
+
+                teleporter.setMask(id, meta);
+            }
+        }
+    }
+
+    public static void sendComputerSetMaskPacket(TileEntity tileEntity, int id, int meta) {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        DataOutputStream dataStream = new DataOutputStream(byteStream);
+
+        try {
+            dataStream.writeByte((byte) 9);
+            dataStream.writeInt(tileEntity.worldObj.provider.dimensionId);
+            dataStream.writeInt(tileEntity.xCoord);
+            dataStream.writeInt(tileEntity.yCoord);
+            dataStream.writeInt(tileEntity.zCoord);
+            dataStream.writeInt(id);
+            dataStream.writeInt(meta);
+
+            PacketDispatcher.sendPacketToServer(PacketDispatcher.getPacket(ModInfo.CHANNEL, byteStream.toByteArray()));
+        } catch (IOException ex) {
+            System.err.append("[Wall Teleporters] Failed to send computer set mask packet");
         }
     }
 }

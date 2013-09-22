@@ -208,7 +208,8 @@ public class TileEntityWallTeleporter extends TileEntity implements IInventory, 
     @Override
     public String[] getMethodNames() {
         return new String[]{ "getX", "getY", "getZ", "getRotation", "getWorldId", "getWorldName", "clear",
-                             "hasDestination", "setUseRotation", "getUseRotation", "setMaskLocked", "isMaskLocked" };
+                             "hasDestination", "setUseRotation", "getUseRotation", "setMaskLocked", "isMaskLocked",
+                             "setMask", "getMask" };
     }
 
     @Override
@@ -232,21 +233,29 @@ public class TileEntityWallTeleporter extends TileEntity implements IInventory, 
                 PacketHandler.sendComputerClearDestinationPacket(multiblock);
                 break;
             case 7: // hasDestination
-                return new Object[] { multiblock.hasDestination() };
-            case 8: // setUseRotation
-                if (!(arguments[0] instanceof Boolean)) throw new Exception("Argument 1 expected to be boolean");
+                return new Object[]{ multiblock.hasDestination() };
+            case 8: // setUseRotation(boolean useRotation)
+                if (!(arguments[0] instanceof Boolean)) throw new Exception("Argument 1 expected to be of type boolean");
                 multiblock.setShouldUseRotation((Boolean) arguments[0]);
                 PacketHandler.sendComputerUseRotationOrLockedPacket(0, multiblock, (Boolean) arguments[0]);
                 break;
             case 9: // getUseRotation
-                return new Object[] { multiblock.shouldUseRotation() };
-            case 10: // setMaskLocked
-                if (!(arguments[0] instanceof Boolean)) throw new Exception("Argument 1 expected to be boolean");
+                return new Object[]{ multiblock.shouldUseRotation() };
+            case 10: // setMaskLocked(boolean locked)
+                if (!(arguments[0] instanceof Boolean)) throw new Exception("Argument 1 expected to be of type boolean");
                 multiblock.setLocked((Boolean) arguments[0]);
                 PacketHandler.sendComputerUseRotationOrLockedPacket(1, multiblock, (Boolean) arguments[0]);
                 break;
             case 11: // isMaskLocked
-                return new Object[] { multiblock.isLocked() };
+                return new Object[]{ multiblock.isLocked() };
+            case 12: // setMask(number id, number meta)
+                if (!(arguments[0] instanceof Double)) throw new Exception("Argument 1 expected to be of type integer was " + arguments[0].getClass());
+                if (!(arguments[1] instanceof Double)) throw new Exception("Argument 2 expected to be of type integer was " + arguments[1].getClass());
+                setMask(((Double) arguments[0]).intValue(), ((Double) arguments[1]).intValue());
+                PacketHandler.sendComputerSetMaskPacket(this, ((Double) arguments[0]).intValue(), ((Double) arguments[1]).intValue());
+                break;
+            case 13: // getMask
+                return new Object[] { mask[0], mask[1] };
         }
         return new Object[0];
     }
