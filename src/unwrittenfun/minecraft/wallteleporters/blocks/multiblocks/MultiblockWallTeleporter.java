@@ -53,7 +53,7 @@ public class MultiblockWallTeleporter implements IInventory {
     public void setLocked(boolean locked) {
         this.locked = locked;
 
-        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
+        if (!controller.getWorldObj().isRemote) {
             PacketHandler.sendLockedOrRotationPacket((byte) 0, this, null);
         }
     }
@@ -65,7 +65,7 @@ public class MultiblockWallTeleporter implements IInventory {
     public void setShouldUseRotation(boolean useRotation) {
         this.useRotation = useRotation;
 
-        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
+        if (!controller.getWorldObj().isRemote) {
             PacketHandler.sendLockedOrRotationPacket((byte) 1, this, null);
         }
     }
@@ -86,7 +86,7 @@ public class MultiblockWallTeleporter implements IInventory {
         destinationZ = z;
         destinationRotation = r;
 
-        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
+        if (!controller.getWorldObj().isRemote) {
             PacketHandler.sendDestinationPacket(this, null);
         }
     }
